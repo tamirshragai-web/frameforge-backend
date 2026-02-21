@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRAMEFORGE — AI Cinema Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg2: #111115;
+    --bg3: #18181f;
+    --bg4: #1e1e28;
+    --border: #2a2a38;
+    --border2: #363650;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --accent3: #7c5cfc;
+    --text: #e8e8f0;
+    --text2: #8888a8;
+    --text3: #555570;
+    --red: #ff4757;
+    --green: #2ed573;
+    --cyan: #1ed8d8;
+    --track-h: 64px;
+    --timeline-left: 220px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    height: 52px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 24px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); }
+
+  .topbar-divider { width: 1px; height: 24px; background: var(--border); }
+
+  .project-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    letter-spacing: 1px;
+  }
+
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0c;
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: #d4eb2f; }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+  }
+  .btn-accent2 {
+    background: var(--accent2);
+    color: #fff;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+  }
+  .status-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ─── LEFT PANEL ─── */
+  .left-panel {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel-tab:hover:not(.active) { color: var(--text2); }
+
+  .panel-content { flex: 1; overflow-y: auto; padding: 12px; }
+  .panel-content::-webkit-scrollbar { width: 3px; }
+  .panel-content::-webkit-scrollbar-track { background: transparent; }
+  .panel-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 16px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* Scene cards in left panel */
+  .scene-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .scene-card:hover, .scene-card.active {
+    border-color: var(--accent3);
+    background: var(--bg4);
+  }
+  .scene-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent3);
+    border-radius: 6px 0 0 6px;
+  }
+  .scene-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--bg4);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scene-thumb-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    opacity: 0.3;
+  }
+  .scene-thumb-badge {
+    position: absolute;
+    bottom: 4px; left: 4px;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text2);
+  }
+  .scene-thumb-status {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .scene-card-title {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .scene-card-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    display: flex;
+    gap: 8px;
+  }
+
+  .add-scene-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 4px;
+  }
+  .add-scene-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Character section */
+  .char-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    margin: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .char-chip:hover { border-color: var(--accent3); }
+  .char-avatar {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+
+  /* Style presets */
+  .style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .style-preset {
+    aspect-ratio: 16/9;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    padding: 6px;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .style-preset.selected { border-color: var(--accent); }
+  .style-preset-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── CENTER AREA ─── */
+  .center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Preview */
+  .preview-area {
+    flex-shrink: 0;
+    background: #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    height: 320px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .preview-canvas {
+    height: 100%;
+    aspect-ratio: 16/9;
+    background: var(--bg3);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .preview-placeholder {
+    text-align: center;
+    z-index: 1;
+  }
+  .preview-placeholder-icon { font-size: 48px; opacity: 0.15; margin-bottom: 12px; }
+  .preview-placeholder-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 2px;
+  }
+
+  /* scanline overlay */
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* film grain */
+  .preview-canvas::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .preview-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+  }
+  .play-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    font-size: 14px;
+    transition: transform 0.1s;
+    flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.05); }
+
+  .time-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 35%;
+    position: relative;
+  }
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: -4px; top: -4px;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .preview-corner {
+    position: absolute;
+    top: 10px; left: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.15);
+    z-index: 10;
+  }
+  .preview-tc {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+
+  /* ─── TIMELINE ─── */
+  .timeline-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    min-height: 0;
+  }
+
+  .timeline-toolbar {
+    height: 36px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .tl-btn {
+    width: 26px; height: 26px;
+    border-radius: 4px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+  .tl-btn:hover { border-color: var(--border2); color: var(--text); }
+  .tl-btn.active { background: var(--accent3); border-color: var(--accent3); color: #fff; }
+
+  .tl-divider { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+
+  .zoom-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    margin-left: auto;
+  }
+
+  .timeline-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ruler */
+  .tl-ruler-row {
+    height: 24px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-shrink: 0;
+  }
+  .tl-ruler-label {
+    width: var(--timeline-left);
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    gap: 6px;
+  }
+  .tl-ruler-marks {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .ruler-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Tracks */
+  .tl-tracks-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .tl-tracks-scroll::-webkit-scrollbar { width: 4px; }
+  .tl-tracks-scroll::-webkit-scrollbar-track { background: transparent; }
+  .tl-tracks-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .tl-track-row {
+    height: var(--track-h);
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .tl-track-row:hover .tl-track-label { background: var(--bg3); }
+
+  .tl-track-label {
+    width: var(--timeline-left);
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    background: var(--bg2);
+    transition: background 0.1s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .track-icon {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .track-info { flex: 1; min-width: 0; }
+  .track-name {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+
+  .track-mute-btn {
+    width: 20px; height: 20px;
+    border-radius: 3px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    transition: all 0.1s;
+  }
+  .track-mute-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .track-mute-btn.muted { background: var(--red); border-color: var(--red); color: #fff; }
+
+  /* Clip area */
+  .tl-track-clips {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* The clip track */
+  .clip {
+    position: absolute;
+    top: 6px;
+    height: calc(100% - 12px);
+    border-radius: 5px;
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    transition: box-shadow 0.15s;
+    user-select: none;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .clip:hover {
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+    z-index: 10;
+  }
+  .clip.selected {
+    box-shadow: 0 0 0 2px var(--accent);
+    z-index: 20;
+  }
+  .clip-label {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  .clip-dur {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+  .clip-status {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Clip type colors */
+  .clip-video { background: linear-gradient(135deg, #1a1a5e 0%, #2d2d8a 100%); }
+  .clip-audio { background: linear-gradient(135deg, #1a4a1a 0%, #1e6b1e 100%); }
+  .clip-voice { background: linear-gradient(135deg, #4a1a1a 0%, #7a2a1a 100%); }
+  .clip-sfx { background: linear-gradient(135deg, #1a3a4a 0%, #1a5a7a 100%); }
+
+  /* Clip waveform bg */
+  .clip-wave {
+    position: absolute;
+    inset: 0;
+    opacity: 0.12;
+  }
+
+  /* Playhead */
+  .tl-playhead {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    z-index: 50;
+    pointer-events: none;
+    left: 35%;
+  }
+  .tl-playhead::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -5px;
+    border: 6px solid transparent;
+    border-top-color: var(--accent);
+    border-bottom: none;
+  }
+  .tl-playhead-ruler {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    left: 35%;
+    pointer-events: none;
+  }
+
+  /* ─── RIGHT PANEL ─── */
+  .right-panel {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .inspector-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .inspector-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .inspector-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 2px;
+  }
+
+  .inspector-body { flex: 1; overflow-y: auto; padding: 12px; }
+  .inspector-body::-webkit-scrollbar { width: 3px; }
+  .inspector-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .field-group {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--bg3);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .field-badge {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    background: var(--accent3);
+    color: #fff;
+  }
+
+  .field-textarea {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 8px 10px;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.15s;
+  }
+  .field-textarea:focus { outline: none; border-color: var(--accent3); }
+  .field-textarea::placeholder { color: var(--text3); }
+
+  .field-select {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 7px 10px;
+    cursor: pointer;
+    appearance: none;
+    transition: border-color 0.15s;
+  }
+  .field-select:focus { outline: none; border-color: var(--accent3); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 7px 10px;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus { outline: none; border-color: var(--accent3); }
+
+  .slider-wrap { margin-top: 6px; }
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .slider-name { font-size: 11px; color: var(--text2); flex: 1; }
+  .slider-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    width: 32px;
+    text-align: right;
+  }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--bg4);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent3);
+    cursor: pointer;
+  }
+
+  /* AI Generate button */
+  .generate-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent3), #5a3cdc);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .generate-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  .generate-btn:hover::before { transform: translateX(100%); }
+  .generate-btn:hover { box-shadow: 0 0 20px rgba(124,92,252,0.4); }
+
+  .generate-voice-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #7a2a1a, var(--accent2));
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .generate-voice-btn:hover { box-shadow: 0 0 16px rgba(255,107,53,0.4); }
+
+  /* Progress simulation */
+  .gen-progress {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--bg4);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .gen-progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .gen-progress-bar {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .gen-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent3), var(--cyan));
+    border-radius: 2px;
+    animation: progress-pulse 2s ease-in-out infinite;
+  }
+  @keyframes progress-pulse {
+    0% { width: 20%; }
+    50% { width: 80%; }
+    100% { width: 20%; }
+  }
+
+  /* Voice waveform preview */
+  .waveform-preview {
+    height: 32px;
+    background: var(--bg4);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+  }
+  .wave-bar {
+    flex: 1;
+    background: var(--green);
+    border-radius: 1px;
+    opacity: 0.7;
+  }
+
+  /* Notification */
+  .notif {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent3);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    max-width: 260px;
+  }
+  .notif.show { opacity: 1; transform: translateY(0); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 24px;
+    width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+  }
+  .modal-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+
+  /* Tab content panels */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  /* Timeline playhead overlay */
+  .tl-overlay {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    FRAMEFORGE
+  </div>
+  <div class="topbar-divider"></div>
+  <span class="project-name">UNTITLED_PROJECT_01.FFP</span>
+  <div class="topbar-divider"></div>
+  <div class="status-dot"></div>
+  <span class="status-label">AI MODELS CONNECTED</span>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" onclick="showNotif('Project saved ✓')">SAVE</button>
+    <button class="btn btn-ghost" onclick="openModal('export')">EXPORT</button>
+    <button class="btn btn-primary" onclick="openModal('render')">▶ RENDER ALL</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="panel-tabs">
+      <div class="panel-tab active" onclick="switchTab(this,'scenes')">SCENES</div>
+      <div class="panel-tab" onclick="switchTab(this,'characters')">CAST</div>
+      <div class="panel-tab" onclick="switchTab(this,'styles')">STYLE</div>
+    </div>
+    <div class="panel-content">
+
+      <!-- SCENES TAB -->
+      <div class="tab-panel active" id="tab-scenes">
+        <div class="section-label">SCENE LIBRARY</div>
+
+        <div class="scene-card active" onclick="selectScene(this, 0)">
+          <div class="scene-thumb">
+            <div class="scene-thumb-inner">🌆</div>
+            <div class="scene-thumb-badge">00:00 – 00:08</div>
+            <div class="scene-thumb-status" style="background:var(--green)"></div>
+          </div>
+          <div class="scene-card-title">01 — Opening Cityscape</div>
+          <div class="scene-card-meta"><span>8s</span><span>GENERATED</span></div>
+        </div>
+
+        <div class="scene-card" onclick="selectScene(this, 1)">
+          <div class="scene-thumb">
+            <div class="scene-thumb-inner">🏢</div>
+            <div class="scene-thumb-badge">00:08 – 00:15</div>
+            <div class="scene-thumb-status" style="background:var(--green)"></div>
+          </div>
+          <div class="scene-card-title">02 — Office Interior</div>
+          <div class="scene-card-meta"><span>7s</span><span>GENERATED</span></div>
+        </div>
+
+        <div class="scene-card" onclick="selectScene(this, 2)">
+          <div class="scene-thumb">
+            <div class="scene-thumb-inner">🎭</div>
+            <div class="scene-thumb-badge">00:15 – 00:27</div>
+            <div class="scene-thumb-status" style="background:var(--accent)"></div>
+          </div>
+          <div class="scene-card-title">03 — Character Confrontation</div>
+          <div class="scene-card-meta"><span>12s</span><span>RENDERING</span></div>
+        </div>
+
+        <div class="scene-card" onclick="selectScene(this, 3)">
+          <div class="scene-thumb">
+            <div class="scene-thumb-inner">🌙</div>
+            <div class="scene-thumb-badge">00:27 – 00:35</div>
+            <div class="scene-thumb-status" style="background:var(--text3)"></div>
+          </div>
+          <div class="scene-card-title">04 — Night Escape</div>
+          <div class="scene-card-meta"><span>8s</span><span>DRAFT</span></div>
+        </div>
+
+        <div class="scene-card" onclick="selectScene(this, 4)">
+          <div class="scene-thumb">
+            <div class="scene-thumb-inner">🎬</div>
+            <div class="scene-thumb-badge">00:35 – 00:48</div>
+            <div class="scene-thumb-status" style="background:var(--text3)"></div>
+          </div>
+          <div class="scene-card-title">05 — Resolution</div>
+          <div class="scene-card-meta"><span>13s</span><span>EMPTY</span></div>
+        </div>
+
+        <button class="add-scene-btn" onclick="addScene()">+ ADD SCENE</button>
+      </div>
+
+      <!-- CHARACTERS TAB -->
+      <div class="tab-panel" id="tab-characters">
+        <div class="section-label">CAST MEMBERS</div>
+        <div id="char-list">
+          <div class="field-group" style="cursor:pointer" onclick="selectChar(0)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c5cfc,#5a3cdc);display:flex;align-items:center;justify-content:center;font-size:16px;">👩</div>
+              <div>
+                <div style="font-size:12px;font-weight:500">ARIA CHEN</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3)">PROTAGONIST</div>
+              </div>
+              <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--green)"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.5">Late 30s, sharp intelligence, worn leather jacket. Cyberpunk aesthetic.</div>
+          </div>
+
+          <div class="field-group" style="cursor:pointer" onclick="selectChar(1)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff4757,#c0392b);display:flex;align-items:center;justify-content:center;font-size:16px;">🧑‍💼</div>
+              <div>
+                <div style="font-size:12px;font-weight:500">DIRECTOR VALE</div>
+                <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3)">ANTAGONIST</div>
+              </div>
+              <div style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--green)"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.5">Cold, calculating. Impeccable suit. Steel grey eyes.</div>
+          </div>
+
+          <button class="add-scene-btn" onclick="openModal('addChar')">+ ADD CHARACTER</button>
+        </div>
+      </div>
+
+      <!-- STYLES TAB -->
+      <div class="tab-panel" id="tab-styles">
+        <div class="section-label">VISUAL STYLE</div>
+        <div class="style-grid">
+          <div class="style-preset selected" style="background:linear-gradient(135deg,#0d0d2b,#1a1a5e)" onclick="selectStyle(this)">
+            <div class="style-preset-label">NEON NOIR</div>
+          </div>
+          <div class="style-preset" style="background:linear-gradient(135deg,#2d1b00,#5c3a00)" onclick="selectStyle(this)">
+            <div class="style-preset-label">CINEMATIC</div>
+          </div>
+          <div class="style-preset" style="background:linear-gradient(135deg,#001a0d,#003322)" onclick="selectStyle(this)">
+            <div class="style-preset-label">SCI-FI</div>
+          </div>
+          <div class="style-preset" style="background:linear-gradient(135deg,#1a0022,#3d0055)" onclick="selectStyle(this)">
+            <div class="style-preset-label">SURREAL</div>
+          </div>
+          <div class="style-preset" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a)" onclick="selectStyle(this)">
+            <div class="style-preset-label">B&W FILM</div>
+          </div>
+          <div class="style-preset" style="background:linear-gradient(135deg,#0a1a0a,#0a2a1a)" onclick="selectStyle(this)">
+            <div class="style-preset-label">ANIME</div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:16px">PARAMETERS</div>
+        <div class="field-group">
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <span class="slider-name">Cinematic grain</span>
+              <span class="slider-val" id="v-grain">0.6</span>
+              <input type="range" min="0" max="1" step="0.1" value="0.6" oninput="document.getElementById('v-grain').textContent=this.value">
+            </div>
+            <div class="slider-row">
+              <span class="slider-name">Color grading</span>
+              <span class="slider-val" id="v-color">0.8</span>
+              <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="document.getElementById('v-color').textContent=this.value">
+            </div>
+            <div class="slider-row">
+              <span class="slider-name">Depth of field</span>
+              <span class="slider-val" id="v-dof">0.5</span>
+              <input type="range" min="0" max="1" step="0.1" value="0.5" oninput="document.getElementById('v-dof').textContent=this.value">
+            </div>
+            <div class="slider-row">
+              <span class="slider-name">Motion blur</span>
+              <span class="slider-val" id="v-blur">0.3</span>
+              <input type="range" min="0" max="1" step="0.1" value="0.3" oninput="document.getElementById('v-blur').textContent=this.value">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+
+    <!-- PREVIEW -->
+    <div class="preview-area">
+      <div class="preview-canvas" id="previewCanvas">
+        <div class="scanlines"></div>
+        <div class="preview-placeholder" id="previewPlaceholder">
+          <div class="preview-placeholder-icon">🎬</div>
+          <div class="preview-placeholder-text">SELECT A SCENE TO PREVIEW</div>
+        </div>
+        <div class="preview-corner">FRAMEFORGE</div>
+        <div class="preview-tc" id="previewTC">00:00:00:00</div>
+      </div>
+      <div class="preview-controls">
+        <button class="play-btn" onclick="togglePlay()" id="playBtn">▶</button>
+        <span class="time-display" id="timeDisplay">00:00:08 / 00:00:48</span>
+        <div class="progress-bar-wrap" onclick="seekTo(event, this)">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="timeline-wrap">
+      <!-- Toolbar -->
+      <div class="timeline-toolbar">
+        <button class="tl-btn active" data-tip="Select">↖</button>
+        <button class="tl-btn" data-tip="Razor" onclick="activateTool(this)">✂</button>
+        <button class="tl-btn" data-tip="Hand" onclick="activateTool(this)">✋</button>
+        <div class="tl-divider"></div>
+        <button class="tl-btn" data-tip="Undo" onclick="showNotif('Undo ✓')">↩</button>
+        <button class="tl-btn" data-tip="Redo" onclick="showNotif('Redo ✓')">↪</button>
+        <div class="tl-divider"></div>
+        <button class="tl-btn" data-tip="Snap to grid" onclick="toggleSnap(this)">⊞</button>
+        <button class="tl-btn" data-tip="Link clips" onclick="toggleLink(this)">🔗</button>
+        <div class="tl-divider"></div>
+        <button class="tl-btn" onclick="zoomIn()" data-tip="Zoom in">+</button>
+        <button class="tl-btn" onclick="zoomOut()" data-tip="Zoom out">−</button>
+        <div class="tl-divider"></div>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:10px" onclick="openModal('addTrack')">+ TRACK</button>
+        <span class="zoom-display" id="zoomDisplay">100%</span>
+      </div>
+
+      <!-- Ruler -->
+      <div class="tl-ruler-row">
+        <div class="tl-ruler-label">
+          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3)">TRACK</span>
+        </div>
+        <div class="tl-ruler-marks" id="rulerMarks">
+          <canvas class="ruler-canvas" id="rulerCanvas"></canvas>
+          <div class="tl-playhead-ruler" id="rulerPlayhead"></div>
+        </div>
+      </div>
+
+      <!-- Tracks scroll -->
+      <div class="tl-tracks-scroll" id="tracksScroll">
+        <div id="tracksContainer"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="inspector-header">
+      <div class="inspector-title">INSPECTOR</div>
+      <div class="inspector-subtitle" id="inspectorSubtitle">SCENE 01 — OPENING CITYSCAPE</div>
+    </div>
+    <div class="inspector-body" id="inspectorBody">
+
+      <!-- Video Generation -->
+      <div class="field-group">
+        <div class="field-label">
+          VIDEO PROMPT
+          <span class="field-badge">AI</span>
+        </div>
+        <textarea class="field-textarea" id="videoPrompt" placeholder="Describe the scene visuals in detail...">Aerial drone shot over a rain-soaked neon-lit cyberpunk city at dusk. Towering skyscrapers with holographic advertisements. Camera slowly descends toward street level. Cinematic depth of field.</textarea>
+        <div class="field-row" style="margin-top:8px">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">MODEL</div>
+            <select class="field-select">
+              <option>Sora v2</option>
+              <option>Runway Gen-3</option>
+              <option>Kling 2.0</option>
+              <option>Pika 2.0</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">DURATION</div>
+            <select class="field-select">
+              <option>8s</option>
+              <option>10s</option>
+              <option>15s</option>
+              <option>Custom</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">CAMERA MOTION</div>
+          <select class="field-select">
+            <option>Aerial descend</option>
+            <option>Dolly forward</option>
+            <option>Pan left</option>
+            <option>Static</option>
+            <option>Handheld</option>
+            <option>Orbit</option>
+          </select>
+        </div>
+        <button class="generate-btn" onclick="simulateGenerate('video')">⚡ GENERATE SCENE</button>
+        <div class="gen-progress" id="gen-video" style="display:none">
+          <div class="gen-progress-label">
+            <span>Generating frames…</span>
+            <span style="color:var(--accent3)" id="gen-video-pct">0%</span>
+          </div>
+          <div class="gen-progress-bar"><div class="gen-progress-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Voiceover -->
+      <div class="field-group">
+        <div class="field-label">
+          AI VOICEOVER
+          <span class="field-badge" style="background:var(--accent2)">V/O</span>
+        </div>
+        <textarea class="field-textarea" style="min-height:60px" placeholder="Enter narration or dialogue...">In a city where data is power, one woman holds the key to everything they've been hiding.</textarea>
+        <div class="field-row" style="margin-top:8px">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">VOICE</div>
+            <select class="field-select">
+              <option>Aria (F)</option>
+              <option>Vale (M)</option>
+              <option>Nova (F)</option>
+              <option>Echo (M)</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">EMOTION</div>
+            <select class="field-select">
+              <option>Dramatic</option>
+              <option>Neutral</option>
+              <option>Tense</option>
+              <option>Whisper</option>
+            </select>
+          </div>
+        </div>
+        <button class="generate-voice-btn" onclick="simulateGenerate('voice')">🎙 GENERATE VOICE</button>
+        <div id="waveform-preview" style="display:none">
+          <div class="waveform-preview" id="waveformBars"></div>
+        </div>
+      </div>
+
+      <!-- Consistency -->
+      <div class="field-group">
+        <div class="field-label">
+          CHARACTER LOCK
+          <span class="field-badge" style="background:var(--green);color:#000">SYNC</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Characters in this scene:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+          <div class="char-chip"><div class="char-avatar" style="background:linear-gradient(135deg,#7c5cfc,#5a3cdc)">👩</div>ARIA</div>
+          <div class="char-chip" style="border-color:var(--border2);color:var(--text3)">+ ADD</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <span class="slider-name">Consistency strength</span>
+            <span class="slider-val" id="v-cons">0.9</span>
+            <input type="range" min="0" max="1" step="0.1" value="0.9" oninput="document.getElementById('v-cons').textContent=this.value">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sound Design -->
+      <div class="field-group">
+        <div class="field-label">AMBIENT SOUND</div>
+        <select class="field-select" style="margin-bottom:8px">
+          <option>City rain ambience</option>
+          <option>Cyberpunk soundscape</option>
+          <option>Interior silence</option>
+          <option>Custom prompt...</option>
+        </select>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <span class="slider-name">Volume</span>
+            <span class="slider-val" id="v-amb">0.6</span>
+            <input type="range" min="0" max="1" step="0.1" value="0.6" oninput="document.getElementById('v-amb').textContent=this.value">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-render">
+  <div class="modal">
+    <div class="modal-title">RENDER PROJECT</div>
+    <div class="modal-subtitle">EXPORT SETTINGS</div>
+    <div class="field-group">
+      <div class="field-label">FORMAT</div>
+      <select class="field-select">
+        <option>MP4 H.264 — 1920×1080</option>
+        <option>MP4 H.265 — 4K UHD</option>
+        <option>ProRes 422 — 1080p</option>
+        <option>WebM — 1080p</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-row">
+        <div>
+          <div class="field-label">FPS</div>
+          <select class="field-select"><option>24</option><option>30</option><option>60</option></select>
+        </div>
+        <div>
+          <div class="field-label">QUALITY</div>
+          <select class="field-select"><option>High</option><option>Medium</option><option>Draft</option></select>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:6px;padding:12px;margin-top:4px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:6px">ESTIMATED</div>
+      <div style="font-size:13px;font-weight:500">48s total · ~320MB · 12 min render</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('render')">CANCEL</button>
+      <button class="btn btn-primary" onclick="closeModal('render');showNotif('Render queued ✓')">START RENDER</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-title">EXPORT</div>
+    <div class="modal-subtitle">SHARE YOUR FILM</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="field-group" style="cursor:pointer;text-align:center">
+        <div style="font-size:24px;margin-bottom:4px">📥</div>
+        <div style="font-size:11px">Download MP4</div>
+      </div>
+      <div class="field-group" style="cursor:pointer;text-align:center">
+        <div style="font-size:24px;margin-bottom:4px">☁️</div>
+        <div style="font-size:11px">Upload to Cloud</div>
+      </div>
+      <div class="field-group" style="cursor:pointer;text-align:center">
+        <div style="font-size:24px;margin-bottom:4px">🔗</div>
+        <div style="font-size:11px">Share Link</div>
+      </div>
+      <div class="field-group" style="cursor:pointer;text-align:center">
+        <div style="font-size:24px;margin-bottom:4px">📦</div>
+        <div style="font-size:11px">Export Project</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('export')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-addTrack">
+  <div class="modal">
+    <div class="modal-title">ADD TRACK</div>
+    <div class="modal-subtitle">CHOOSE TRACK TYPE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="field-group" style="cursor:pointer" onclick="addTrack('video');closeModal('addTrack')">
+        <div style="font-size:20px;margin-bottom:4px">🎬</div>
+        <div style="font-size:12px;font-weight:500">Video</div>
+        <div style="font-size:10px;color:var(--text3)">Scene clips</div>
+      </div>
+      <div class="field-group" style="cursor:pointer" onclick="addTrack('voice');closeModal('addTrack')">
+        <div style="font-size:20px;margin-bottom:4px">🎙</div>
+        <div style="font-size:12px;font-weight:500">Voiceover</div>
+        <div style="font-size:10px;color:var(--text3)">AI speech</div>
+      </div>
+      <div class="field-group" style="cursor:pointer" onclick="addTrack('music');closeModal('addTrack')">
+        <div style="font-size:20px;margin-bottom:4px">🎵</div>
+        <div style="font-size:12px;font-weight:500">Music</div>
+        <div style="font-size:10px;color:var(--text3)">Score & soundtrack</div>
+      </div>
+      <div class="field-group" style="cursor:pointer" onclick="addTrack('sfx');closeModal('addTrack')">
+        <div style="font-size:20px;margin-bottom:4px">🔊</div>
+        <div style="font-size:12px;font-weight:500">SFX</div>
+        <div style="font-size:10px;color:var(--text3)">Sound effects</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addTrack')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-addChar">
+  <div class="modal">
+    <div class="modal-title">ADD CHARACTER</div>
+    <div class="modal-subtitle">DEFINE CAST MEMBER</div>
+    <div class="field-group">
+      <div class="field-label">CHARACTER NAME</div>
+      <input class="field-input" placeholder="e.g. AGENT CROSS">
+    </div>
+    <div class="field-group">
+      <div class="field-label">ROLE</div>
+      <select class="field-select">
+        <option>Supporting</option><option>Protagonist</option><option>Antagonist</option><option>Extra</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">VISUAL DESCRIPTION</div>
+      <textarea class="field-textarea" placeholder="Physical appearance, clothing, distinctive features..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('addChar')">CANCEL</button>
+      <button class="btn btn-primary" onclick="closeModal('addChar');showNotif('Character added ✓')">ADD CHARACTER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───
+let zoom = 100;
+let isPlaying = false;
+let playProgress = 0.35;
+let playInterval = null;
+const TOTAL_DURATION = 48;
+let selectedClip = null;
+let activeSceneIdx = 0;
+
+// Track data
+const tracks = [
+  {
+    id: 'v1', name: 'VIDEO 01', type: 'video', icon: '🎬',
+    iconBg: 'linear-gradient(135deg,#1a1a5e,#2d2d8a)',
+    muted: false,
+    clips: [
+      { id: 'c1', label: 'Opening Cityscape', start: 0, dur: 8, status: 'ready', type: 'video' },
+      { id: 'c2', label: 'Office Interior', start: 8, dur: 7, status: 'ready', type: 'video' },
+      { id: 'c3', label: 'Confrontation', start: 15, dur: 12, status: 'rendering', type: 'video' },
+      { id: 'c4', label: 'Night Escape', start: 27, dur: 8, status: 'draft', type: 'video' },
+      { id: 'c5', label: 'Resolution', start: 35, dur: 13, status: 'empty', type: 'video' },
+    ]
+  },
+  {
+    id: 'vo1', name: 'VOICEOVER', type: 'voice', icon: '🎙',
+    iconBg: 'linear-gradient(135deg,#4a1a1a,#7a2a1a)',
+    muted: false,
+    clips: [
+      { id: 'v1', label: 'Narration — Open', start: 0, dur: 6, status: 'ready', type: 'voice' },
+      { id: 'v2', label: 'Aria Dialogue', start: 16, dur: 5, status: 'ready', type: 'voice' },
+      { id: 'v3', label: 'Vale Monologue', start: 30, dur: 7, status: 'draft', type: 'voice' },
+    ]
+  },
+  {
+    id: 'm1', name: 'SCORE', type: 'audio', icon: '🎵',
+    iconBg: 'linear-gradient(135deg,#1a4a1a,#1e6b1e)',
+    muted: false,
+    clips: [
+      { id: 'm1', label: 'Main Theme', start: 0, dur: 20, status: 'ready', type: 'audio' },
+      { id: 'm2', label: 'Tension Build', start: 22, dur: 26, status: 'ready', type: 'audio' },
+    ]
+  },
+  {
+    id: 's1', name: 'SFX', type: 'sfx', icon: '🔊',
+    iconBg: 'linear-gradient(135deg,#1a3a4a,#1a5a7a)',
+    muted: false,
+    clips: [
+      { id: 's1', label: 'Rain + City', start: 0, dur: 15, status: 'ready', type: 'sfx' },
+      { id: 's2', label: 'Fight SFX', start: 15, dur: 12, status: 'ready', type: 'sfx' },
+      { id: 's3', label: 'Ambience', start: 35, dur: 13, status: 'draft', type: 'sfx' },
+    ]
+  }
+];
+
+// ─── INIT ───
+function init() {
+  renderTracks();
+  drawRuler();
+  window.addEventListener('resize', () => { drawRuler(); updateClipPositions(); });
+}
+
+function getClipsWidth() {
+  const container = document.getElementById('tracksContainer');
+  const tlLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--timeline-left') || 220);
+  return (container ? container.offsetWidth : 800) - tlLeft;
+}
+
+function timeToPercent(t) { return (t / TOTAL_DURATION) * (zoom / 100); }
+function timeToPos(t, w) { return timeToPercent(t) * w; }
+function durationToWidth(d, w) { return (d / TOTAL_DURATION) * (zoom / 100) * w; }
+
+// ─── RULER ───
+function drawRuler() {
+  const canvas = document.getElementById('rulerCanvas');
+  if (!canvas) return;
+  const parent = canvas.parentElement;
+  canvas.width = parent.offsetWidth;
+  canvas.height = 24;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const scale = zoom / 100;
+
+  ctx.clearRect(0, 0, w, 24);
+  ctx.fillStyle = '#555570';
+  ctx.font = '9px DM Mono, monospace';
+  ctx.letterSpacing = '1px';
+
+  const totalW = w * scale;
+  // marks every 2 seconds
+  for (let t = 0; t <= TOTAL_DURATION; t += 2) {
+    const x = (t / TOTAL_DURATION) * totalW;
+    if (x > w) break;
+    const major = t % 10 === 0;
+    const mid = t % 5 === 0 && !major;
+    ctx.fillStyle = major ? '#8888a8' : mid ? '#555570' : '#333350';
+    ctx.fillRect(x, major ? 12 : mid ? 16 : 18, 1, major ? 12 : mid ? 8 : 6);
+    if (major) {
+      ctx.fillStyle = '#8888a8';
+      ctx.fillText(formatTime(t), x + 3, 11);
+    }
+  }
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function formatTimeMs(s) {
+  const frames = Math.floor((s % 1) * 24);
+  return `${formatTime(Math.floor(s))}:${String(frames).padStart(2,'0')}`;
+}
+
+// ─── TRACKS ───
+function renderTracks() {
+  const container = document.getElementById('tracksContainer');
+  container.innerHTML = '';
+
+  tracks.forEach((track, ti) => {
+    const row = document.createElement('div');
+    row.className = 'tl-track-row';
+    row.id = `track-row-${track.id}`;
+
+    row.innerHTML = `
+      <div class="tl-track-label" onclick="selectTrack(${ti})">
+        <div class="track-icon" style="background:${track.iconBg}">${track.icon}</div>
+        <div class="track-info">
+          <div class="track-name">${track.name}</div>
+          <div class="track-type">${track.type.toUpperCase()}</div>
+        </div>
+        <button class="track-mute-btn ${track.muted?'muted':''}" onclick="event.stopPropagation();toggleMute(${ti})" title="${track.muted?'Unmute':'Mute'}">${track.muted?'M':'◎'}</button>
+      </div>
+      <div class="tl-track-clips" id="clips-${track.id}">
+        <div class="tl-playhead" id="playhead-${track.id}"></div>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  updateClipPositions();
+  updatePlayhead();
+}
+
+function updateClipPositions() {
+  const rulerW = document.getElementById('rulerCanvas').parentElement.offsetWidth;
+
+  tracks.forEach(track => {
+    const clipArea = document.getElementById(`clips-${track.id}`);
+    if (!clipArea) return;
+    const w = clipArea.offsetWidth || rulerW;
+
+    // remove old clips
+    clipArea.querySelectorAll('.clip').forEach(e => e.remove());
+
+    track.clips.forEach(clip => {
+      const el = document.createElement('div');
+      const left = timeToPos(clip.start, w);
+      const width = Math.max(durationToWidth(clip.dur, w), 30);
+
+      const statusColor = {ready:'var(--green)', rendering:'var(--accent)', draft:'var(--text3)', empty:'var(--text3)'}[clip.status] || 'var(--text3)';
+      const typeClass = {video:'clip-video', voice:'clip-voice', audio:'clip-audio', sfx:'clip-sfx'}[clip.type] || 'clip-video';
+
+      el.className = `clip ${typeClass}`;
+      el.style.cssText = `left:${left}px;width:${width}px;`;
+      el.dataset.clipId = clip.id;
+      el.dataset.trackId = track.id;
+
+      el.innerHTML = `
+        <div class="clip-status" style="background:${statusColor}"></div>
+        <span class="clip-label">${clip.label}</span>
+        ${width > 80 ? `<span class="clip-dur">${clip.dur}s</span>` : ''}
+      `;
+
+      el.addEventListener('click', (e) => { e.stopPropagation(); selectClip(el, clip, track); });
+
+      // drag
+      makeDraggable(el, clip, track, w);
+
+      clipArea.appendChild(el);
+    });
+  });
+}
+
+function makeDraggable(el, clip, track, containerW) {
+  let startX, startLeft, startClipStart;
+  el.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('clip-status')) return;
+    startX = e.clientX;
+    startLeft = parseFloat(el.style.left);
+    startClipStart = clip.start;
+    el.style.cursor = 'grabbing';
+
+    const onMove = (e) => {
+      const dx = e.clientX - startX;
+      const newLeft = Math.max(0, startLeft + dx);
+      const newStart = (newLeft / containerW) * TOTAL_DURATION / (zoom/100);
+      el.style.left = newLeft + 'px';
+      clip.start = Math.round(newStart * 10) / 10;
+    };
+    const onUp = () => {
+      el.style.cursor = 'grab';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+function selectClip(el, clip, track) {
+  document.querySelectorAll('.clip.selected').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedClip = { el, clip, track };
+  showNotif(`Selected: ${clip.label} · ${clip.dur}s`);
+}
+
+function selectTrack(idx) {
+  showNotif(`Track: ${tracks[idx].name}`);
+}
+
+function toggleMute(idx) {
+  tracks[idx].muted = !tracks[idx].muted;
+  renderTracks();
+}
+
+// ─── PLAYHEAD ───
+function updatePlayhead() {
+  const rulerW = document.getElementById('rulerCanvas').parentElement.offsetWidth;
+  const pct = playProgress * 100 * (zoom / 100);
+  const px = (playProgress * rulerW * (zoom / 100));
+
+  document.getElementById('rulerPlayhead').style.left = px + 'px';
+  document.getElementById('progressFill').style.width = (playProgress * 100) + '%';
+
+  tracks.forEach(track => {
+    const ph = document.getElementById(`playhead-${track.id}`);
+    if (ph) ph.style.left = px + 'px';
+  });
+
+  const currentTime = playProgress * TOTAL_DURATION;
+  document.getElementById('timeDisplay').textContent =
+    `${formatTime(Math.floor(currentTime))} / ${formatTime(TOTAL_DURATION)}`;
+  document.getElementById('previewTC').textContent = formatTimeMs(currentTime);
+}
+
+function seekTo(e, el) {
+  const rect = el.getBoundingClientRect();
+  playProgress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  updatePlayhead();
+}
+
+// ─── PLAY ───
+function togglePlay() {
+  isPlaying = !isPlaying;
+  document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+  if (isPlaying) {
+    playInterval = setInterval(() => {
+      playProgress += 1 / (TOTAL_DURATION * 30);
+      if (playProgress >= 1) { playProgress = 0; }
+      updatePlayhead();
+    }, 33);
+  } else {
+    clearInterval(playInterval);
+  }
+}
+
+// ─── ZOOM ───
+function zoomIn() {
+  zoom = Math.min(400, zoom + 25);
+  document.getElementById('zoomDisplay').textContent = zoom + '%';
+  drawRuler();
+  updateClipPositions();
+  updatePlayhead();
+}
+function zoomOut() {
+  zoom = Math.max(50, zoom - 25);
+  document.getElementById('zoomDisplay').textContent = zoom + '%';
+  drawRuler();
+  updateClipPositions();
+  updatePlayhead();
+}
+
+// ─── TOOLS ───
+function activateTool(btn) {
+  document.querySelectorAll('.tl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleSnap(btn) { btn.classList.toggle('active'); showNotif(btn.classList.contains('active') ? 'Snap enabled' : 'Snap disabled'); }
+function toggleLink(btn) { btn.classList.toggle('active'); showNotif(btn.classList.contains('active') ? 'Link clips on' : 'Link clips off'); }
+
+// ─── SCENES ───
+function selectScene(card, idx) {
+  document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  activeSceneIdx = idx;
+  const names = ['OPENING CITYSCAPE','OFFICE INTERIOR','CHARACTER CONFRONTATION','NIGHT ESCAPE','RESOLUTION'];
+  document.getElementById('inspectorSubtitle').textContent = `SCENE 0${idx+1} — ${names[idx]}`;
+  updatePreview(idx);
+  const startTimes = [0, 8, 15, 27, 35];
+  playProgress = startTimes[idx] / TOTAL_DURATION;
+  updatePlayhead();
+}
+
+const sceneEmojis = ['🌆','🏢','🎭','🌙','🎬'];
+const sceneBgs = [
+  'linear-gradient(135deg,#0d1b3e,#1a3a6e)',
+  'linear-gradient(135deg,#1a1a2e,#2a2a4a)',
+  'linear-gradient(135deg,#3e0d0d,#6e1a1a)',
+  'linear-gradient(135deg,#050520,#0d0d3a)',
+  'linear-gradient(135deg,#1a0d3e,#2a1a6e)'
+];
+
+function updatePreview(idx) {
+  const canvas = document.getElementById('previewCanvas');
+  const placeholder = document.getElementById('previewPlaceholder');
+  placeholder.innerHTML = `
+    <div style="font-size:64px;opacity:0.2">${sceneEmojis[idx]}</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:2px">SCENE 0${idx+1}</div>
+  `;
+  canvas.style.background = sceneBgs[idx];
+}
+
+function addScene() {
+  showNotif('New scene added');
+  const card = document.createElement('div');
+  card.className = 'scene-card';
+  const n = document.querySelectorAll('.scene-card').length + 1;
+  card.innerHTML = `
+    <div class="scene-thumb"><div class="scene-thumb-inner">✨</div><div class="scene-thumb-badge">--:-- – --:--</div><div class="scene-thumb-status" style="background:var(--text3)"></div></div>
+    <div class="scene-card-title">0${n} — New Scene</div>
+    <div class="scene-card-meta"><span>--s</span><span>EMPTY</span></div>
+  `;
+  card.onclick = function() { selectScene(this, n-1); };
+  document.querySelector('#tab-scenes .add-scene-btn').before(card);
+}
+
+// ─── TABS ───
+function switchTab(tab, name) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ─── STYLE ───
+function selectStyle(el) {
+  document.querySelectorAll('.style-preset').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  showNotif('Style updated: ' + el.querySelector('.style-preset-label').textContent);
+}
+
+// ─── CHARS ───
+function selectChar(idx) {
+  showNotif(['Aria Chen selected','Director Vale selected'][idx]);
+}
+
+// ─── ADD TRACK ───
+function addTrack(type) {
+  const icons = {video:'🎬',voice:'🎙',music:'🎵',sfx:'🔊'};
+  const bgs = {
+    video:'linear-gradient(135deg,#1a1a5e,#2d2d8a)',
+    voice:'linear-gradient(135deg,#4a1a1a,#7a2a1a)',
+    music:'linear-gradient(135deg,#1a4a1a,#1e6b1e)',
+    sfx:'linear-gradient(135deg,#1a3a4a,#1a5a7a)'
+  };
+  tracks.push({
+    id: 'new_'+Date.now(),
+    name: type.toUpperCase()+' '+(tracks.length+1),
+    type, icon: icons[type], iconBg: bgs[type],
+    muted: false, clips: []
+  });
+  renderTracks();
+  showNotif(`${type.toUpperCase()} track added`);
+}
+
+// ─── BACKEND CONFIG ───
+// Change this to your backend's base URL before running
+const API_BASE = 'http://localhost:3000';
+
+// ─── GENERATE ───
+async function simulateGenerate(type) {
+  if (type === 'video') {
+    await generateVideo();
+  } else {
+    await generateVoice();
+  }
+}
+
+async function generateVideo() {
+  const prompt = document.getElementById('videoPrompt').value.trim();
+  if (!prompt) { showNotif('⚠ Enter a video prompt first'); return; }
+
+  const modelEl = document.querySelector('.field-select');
+  const durationEl = document.querySelectorAll('.field-select')[1];
+  const cameraEl = document.querySelectorAll('.field-select')[2];
+
+  const progressEl = document.getElementById('gen-video');
+  const pctEl = document.getElementById('gen-video-pct');
+  const generateBtn = document.querySelector('.generate-btn');
+
+  // UI: show progress, disable button
+  progressEl.style.display = 'block';
+  generateBtn.disabled = true;
+  generateBtn.textContent = '⏳ GENERATING…';
+  pctEl.textContent = '0%';
+
+  // Collect scene context
+  const sceneNames = ['Opening Cityscape','Office Interior','Character Confrontation','Night Escape','Resolution'];
+  const payload = {
+    scene_index: activeSceneIdx,
+    scene_name: sceneNames[activeSceneIdx] || `Scene ${activeSceneIdx + 1}`,
+    prompt: prompt,
+    model: modelEl ? modelEl.value : 'Runway Gen-3',
+    duration: durationEl ? parseInt(durationEl.value) : 8,
+    camera_motion: cameraEl ? cameraEl.value : 'Static',
+    style: document.querySelector('.style-preset.selected .style-preset-label')?.textContent || 'Cinematic',
+  };
+
+  try {
+    // Step 1 — Submit generation job
+    const submitRes = await fetch(`${API_BASE}/api/generate/video`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!submitRes.ok) {
+      const err = await submitRes.json().catch(() => ({}));
+      throw new Error(err.message || `Server error ${submitRes.status}`);
+    }
+
+    const { job_id } = await submitRes.json();
+    showNotif(`Job queued: ${job_id}`);
+    pctEl.textContent = '5%';
+
+    // Step 2 — Poll for completion
+    const videoUrl = await pollJobStatus(job_id, pctEl);
+
+    // Step 3 — Display result in preview
+    displayGeneratedVideo(videoUrl);
+    showNotif('✓ Scene generated successfully');
+
+  } catch (err) {
+    console.error('Video generation failed:', err);
+    showNotif(`✗ ${err.message}`);
+  } finally {
+    progressEl.style.display = 'none';
+    generateBtn.disabled = false;
+    generateBtn.textContent = '⚡ GENERATE SCENE';
+  }
+}
+
+// Poll GET /api/jobs/:id every 3s until done or failed
+async function pollJobStatus(jobId, pctEl, maxAttempts = 60) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await sleep(3000);
+
+    const res = await fetch(`${API_BASE}/api/jobs/${jobId}`);
+    if (!res.ok) throw new Error(`Polling failed: ${res.status}`);
+
+    const job = await res.json();
+    // Expected job shape: { id, status: 'pending'|'processing'|'done'|'failed', progress: 0-100, output_url, error }
+
+    if (pctEl && job.progress != null) {
+      pctEl.textContent = `${Math.round(job.progress)}%`;
+    }
+
+    if (job.status === 'done') {
+      if (!job.output_url) throw new Error('Job done but no output_url returned');
+      return job.output_url;
+    }
+
+    if (job.status === 'failed') {
+      throw new Error(job.error || 'Generation failed on server');
+    }
+  }
+  throw new Error('Generation timed out after 3 minutes');
+}
+
+function displayGeneratedVideo(url) {
+  const canvas = document.getElementById('previewCanvas');
+  const placeholder = document.getElementById('previewPlaceholder');
+
+  // Remove old video if present
+  const old = canvas.querySelector('video');
+  if (old) old.remove();
+
+  const video = document.createElement('video');
+  video.src = url;
+  video.controls = false;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;';
+  canvas.insertBefore(video, canvas.firstChild);
+  placeholder.style.display = 'none';
+
+  // Update scene card thumbnail status
+  const sceneCards = document.querySelectorAll('.scene-card');
+  if (sceneCards[activeSceneIdx]) {
+    const statusDot = sceneCards[activeSceneIdx].querySelector('.scene-thumb-status');
+    const metaSpan = sceneCards[activeSceneIdx].querySelectorAll('.scene-card-meta span');
+    if (statusDot) statusDot.style.background = 'var(--green)';
+    if (metaSpan[1]) metaSpan[1].textContent = 'GENERATED';
+  }
+
+  // Add clip to video track if not already there
+  addGeneratedClipToTimeline(url);
+}
+
+function addGeneratedClipToTimeline(url) {
+  const videoTrack = tracks.find(t => t.type === 'video');
+  if (!videoTrack) return;
+  const sceneNames = ['Opening Cityscape','Office Interior','Confrontation','Night Escape','Resolution'];
+  const startTimes = [0, 8, 15, 27, 35];
+  const durations = [8, 7, 12, 8, 13];
+  const existing = videoTrack.clips.find(c => c.id === `generated_${activeSceneIdx}`);
+  if (!existing) {
+    videoTrack.clips.push({
+      id: `generated_${activeSceneIdx}`,
+      label: sceneNames[activeSceneIdx] || `Scene ${activeSceneIdx+1}`,
+      start: startTimes[activeSceneIdx] || 0,
+      dur: durations[activeSceneIdx] || 8,
+      status: 'ready',
+      type: 'video',
+      url
+    });
+  } else {
+    existing.status = 'ready';
+    existing.url = url;
+  }
+  renderTracks();
+}
+
+async function generateVoice() {
+  // Voiceover generation is not wired up in this version (no ElevenLabs selected).
+  // Wire it up the same way as generateVideo() once you add a voice backend endpoint.
+  generateWaveform();
+  showNotif('⚠ Voice backend not configured — showing placeholder');
+}
+
+function generateWaveform() {
+  const wrap = document.getElementById('waveform-preview');
+  const bars = document.getElementById('waveformBars');
+  bars.innerHTML = '';
+  for (let i = 0; i < 48; i++) {
+    const b = document.createElement('div');
+    b.className = 'wave-bar';
+    const h = 20 + Math.random() * 60;
+    b.style.height = h + '%';
+    bars.appendChild(b);
+  }
+  wrap.style.display = 'block';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ─── MODAL ───
+function openModal(id) {
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ─── NOTIF ───
+let notifTimeout;
+function showNotif(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => n.classList.remove('show'), 2200);
+}
+
+// ─── START ───
+init();
+updatePreview(0);
+</script>
+</body>
+</html>
